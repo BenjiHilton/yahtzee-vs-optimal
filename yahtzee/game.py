@@ -24,15 +24,16 @@ _solver_lock = threading.Lock()
 def get_solver() -> Solver:
     global _solver
     if _solver is None:
-        # Keep every AI move responsive (~1-2s worst case):
-        #  * exact win-probability once a side has <=4 boxes open (expected-score
-        #    before that -- the two agree while many turns remain);
+        # Keep every AI move responsive on a slow shared CPU (~3s worst case):
+        #  * exact win-probability only once a side has <=3 boxes open. On a free
+        #    host the 4-open win-prob turn took ~18s; 3-open is ~3s. Expected-score
+        #    play (near-identical this far out) covers everything earlier.
         #  * model a still-playing opponent by their expected final total
         #    (max_opp_dist_open=0). Against a *finished* opponent the play stays
         #    exact, so the decisive last turn is unaffected. Using the full
         #    opponent distribution instead makes the first win-prob round take
         #    ~40s because its smooth reward defeats the solver's pruning.
-        _solver = Solver(max_exact_open=4, max_opp_dist_open=0)
+        _solver = Solver(max_exact_open=3, max_opp_dist_open=0)
     return _solver
 
 

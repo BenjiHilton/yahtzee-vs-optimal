@@ -195,13 +195,23 @@ class ExpectedScoreSolver:
             packed = self._pack(state)
             idx = int(_np.searchsorted(self._keys, packed))
             if idx < self._keys.shape[0] and self._keys[idx] == packed:
-                return float(self._vals[idx])
+                v = float(self._vals[idx])
+                self._remember(state, v)  # cache so repeat lookups are O(1)
+                return v
         if _HAVE_FAST:
             val = _turn_value_from_v0(self._v0_fast(state))
         else:
             val = turn_start_value(state, self._child_value)
-        self._eadd[state] = val
+        self._remember(state, val)
         return val
+
+    def _remember(self, state: State, val: float) -> None:
+        # Bounded runtime cache: the same child states are looked up hundreds of
+        # times within one turn, so caching them makes each turn much faster; the
+        # cap keeps memory low even after many games on a shared server.
+        if len(self._eadd) >= 200000:
+            self._eadd.clear()
+        self._eadd[state] = val
 
     def _v0_fast(self, state: State):
         """Vectorised best-placement value for every final roll (expected-score

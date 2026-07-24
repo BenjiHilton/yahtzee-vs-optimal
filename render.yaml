@@ -5,6 +5,7 @@ services:
     name: yahtzee-vs-optimal
     runtime: python
     plan: free
+    region: frankfurt   # EU (Germany) -- much lower latency from UK/Europe than US
     buildCommand: pip install -r requirements.txt
     startCommand: python -m webapp.server
     # Render injects $PORT; the server already binds 0.0.0.0:$PORT.
