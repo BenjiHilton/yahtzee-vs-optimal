@@ -9,8 +9,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # app + the precomputed expected-score table (ev_table.pkl)
 COPY . .
 
-# the server binds 0.0.0.0:$PORT (defaults to 8000)
-ENV PORT=8000
-EXPOSE 8000
+# Render injects $PORT (default 10000) and health-checks that port; bind + EXPOSE
+# the same port so its checks don't cycle the instance. The server reads $PORT.
+ENV PORT=10000
+EXPOSE 10000
 
 CMD ["python", "-m", "webapp.server"]
