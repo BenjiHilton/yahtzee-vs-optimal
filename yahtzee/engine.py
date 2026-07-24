@@ -138,6 +138,16 @@ class ExpectedScoreSolver:
 
     def __init__(self) -> None:
         self._eadd: Dict[State, float] = {}
+        # Compact preloaded table: sorted uint32 packed-state keys + float32 values,
+        # binary-searched.  ~5x less memory than a dict and loads near-instantly
+        # (important on small/slow hosts -- avoids the unpickling memory spike).
+        self._keys = None
+        self._vals = None
+
+    @staticmethod
+    def _pack(state: State) -> int:
+        # open_mask (13 bits) | upper_total 0..63 (6 bits) | bonus (1 bit)
+        return (state.open_mask << 7) | (state.upper_total << 1) | (1 if state.bonus_active else 0)
 
     def load_cache(self, path: str) -> bool:
         """Load a previously saved eadd table.  Returns True on success."""
@@ -154,6 +164,26 @@ class ExpectedScoreSolver:
         with open(path, "wb") as fh:
             pickle.dump(self._eadd, fh, protocol=pickle.HIGHEST_PROTOCOL)
 
+    def load_npz(self, path: str) -> bool:
+        """Load the compact array table (keys+vals). Returns True on success."""
+        import os
+        if not (_HAVE_FAST and os.path.exists(path)):
+            return False
+        data = _np.load(path)
+        self._keys = data["keys"]
+        self._vals = data["vals"]
+        return True
+
+    def save_npz(self, path: str) -> None:
+        """Write the current dict table as a compact sorted key/value archive."""
+        items = list(self._eadd.items())
+        keys = _np.fromiter((self._pack(s) for s, _ in items),
+                            dtype=_np.uint32, count=len(items))
+        vals = _np.fromiter((v for _, v in items),
+                            dtype=_np.float64, count=len(items))
+        order = _np.argsort(keys, kind="stable")
+        _np.savez(path, keys=keys[order], vals=vals[order].astype(_np.float32))
+
     def eadd(self, state: State) -> float:
         """Expected additional points from ``state`` to the end of the game."""
         if is_terminal(state):
@@ -161,6 +191,11 @@ class ExpectedScoreSolver:
         cached = self._eadd.get(state)
         if cached is not None:
             return cached
+        if self._keys is not None:
+            packed = self._pack(state)
+            idx = int(_np.searchsorted(self._keys, packed))
+            if idx < self._keys.shape[0] and self._keys[idx] == packed:
+                return float(self._vals[idx])
         if _HAVE_FAST:
             val = _turn_value_from_v0(self._v0_fast(state))
         else:

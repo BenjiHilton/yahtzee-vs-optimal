@@ -9,4 +9,5 @@ ngrok.log
 lhr.log
 serve_public.out
 *.out
-# NOTE: ev_table.pkl is intentionally committed -- the server loads it at startup.
+# the deploy ships the compact ev_table.npz; the big pkl is a local artifact
+ev_table.pkl

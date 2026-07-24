@@ -185,8 +185,9 @@ class Solver:
     """
 
     #: default location of the precomputed expected-score table (see
-    #: precompute_ev.py); auto-loaded if present.
-    DEFAULT_EV_CACHE = "ev_table.pkl"
+    #: precompute_ev.py); auto-loaded if present.  The compact .npz is preferred
+    #: (small + fast to load); the .pkl still works as a fallback.
+    DEFAULT_EV_CACHE = "ev_table.npz"
 
     def __init__(self, tie_value: float = 0.5, max_exact_open: int = 7,
                  max_opp_dist_open: int = 6,
@@ -204,7 +205,10 @@ class Solver:
                 cand = os.path.join(here, ev_cache)
                 if os.path.exists(cand):
                     path = cand
-            self.ev.load_cache(path)
+            if path.endswith(".npz"):
+                self.ev.load_npz(path)
+            else:
+                self.ev.load_cache(path)
         self.opponent_model = OpponentModel(self.ev)
 
     # -- win-probability reward construction --------------------------------
