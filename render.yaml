@@ -1,0 +1,14 @@
+# One-click deploy to Render (https://render.com) -- free tier.
+# Create a new "Blueprint" from your Git repo and Render reads this file.
+services:
+  - type: web
+    name: yahtzee-vs-optimal
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m webapp.server
+    # Render injects $PORT; the server already binds 0.0.0.0:$PORT.
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+    healthCheckPath: /

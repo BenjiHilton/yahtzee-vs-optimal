@@ -1,0 +1,8 @@
+**/__pycache__/
+*.pyc
+.git/
+.DS_Store
+webserver.log
+tests/
+scratchpad/
+# keep ev_table.pkl -- the server needs it

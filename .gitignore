@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.DS_Store
+# local Claude Code config (not part of the app)
+.claude/
+# local run artifacts
+webserver.log
+ngrok.log
+lhr.log
+serve_public.out
+*.out
+# NOTE: ev_table.pkl is intentionally committed -- the server loads it at startup.

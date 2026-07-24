@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>You vs Optimal — Yahtzee</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>You <span class="vs">vs</span> Optimal</h1>
+      <p class="sub">Yahtzee &middot; one reroll &middot; the opponent plays optimally to beat you</p>
+    </header>
+
+    <section id="setup">
+      <label>Who goes first?
+        <select id="first">
+          <option value="you">You</option>
+          <option value="ai">Optimal</option>
+        </select>
+        <kbd class="flipkey" title="flip">F</kbd>
+      </label>
+      <button id="new-btn" class="primary"><span class="blabel">New game</span> <kbd>N</kbd></button>
+      <button id="help-btn" class="ghost">Shortcuts <kbd>?</kbd></button>
+    </section>
+
+    <section id="board">
+      <table id="card">
+        <thead>
+          <tr><th class="cat">Category</th><th>You</th><th>Optimal</th></tr>
+        </thead>
+        <tbody id="card-body"></tbody>
+        <tfoot>
+          <tr class="total"><th class="cat">Total</th><td id="you-total">0</td><td id="ai-total">0</td></tr>
+        </tfoot>
+      </table>
+    </section>
+
+    <section id="play" class="hidden">
+      <div id="turnbar"></div>
+      <div id="dice"></div>
+      <div id="actions">
+        <button id="roll-btn" class="primary"><span class="blabel">Roll</span> <kbd>R</kbd></button>
+        <button id="reroll-btn"><span class="blabel">Reroll</span> <kbd>R</kbd></button>
+        <button id="hint-btn" class="ghost"><span class="blabel">Hint</span> <kbd>H</kbd></button>
+      </div>
+      <div id="hint"></div>
+    </section>
+
+    <section id="log"></section>
+    <section id="result" class="hidden"></section>
+    <p id="kbd-hint">Keyboard-first &mdash; press <kbd>?</kbd> any time for all shortcuts.</p>
+  </div>
+
+  <div id="help" class="hidden">
+    <div class="help-card">
+      <h2>Keyboard shortcuts</h2>
+      <div class="help-sec">Anytime</div>
+      <div class="help-row"><span>New game</span><span class="keys"><kbd>N</kbd></span></div>
+      <div class="help-row"><span>Show / hide this help</span><span class="keys"><kbd>?</kbd> <kbd>Esc</kbd></span></div>
+      <div class="help-row"><span>Flip who goes first (before a game)</span><span class="keys"><kbd>F</kbd></span></div>
+
+      <div class="help-sec">Your turn &mdash; rolling</div>
+      <div class="help-row"><span>Roll</span><span class="keys"><kbd>R</kbd> <kbd>Space</kbd> <kbd>Enter</kbd></span></div>
+      <div class="help-row"><span>Keep / un-keep a die</span><span class="keys"><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd> <kbd>5</kbd></span></div>
+      <div class="help-row"><span>Reroll the dice you didn't keep</span><span class="keys"><kbd>R</kbd> <kbd>Space</kbd></span></div>
+      <div class="help-row"><span>Show the optimal move (hint)</span><span class="keys"><kbd>H</kbd></span></div>
+      <div class="help-row"><span>Score in the hinted box</span><span class="keys"><kbd>Enter</kbd></span></div>
+
+      <div class="help-sec">Your turn &mdash; score in a box</div>
+      <div class="help-row"><span>Ones / Twos / Threes / Fours / Fives / Sixes</span><span class="keys"><kbd>Q</kbd> <kbd>W</kbd> <kbd>E</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></span></div>
+      <div class="help-row"><span>3-Kind / 4-Kind / Full House</span><span class="keys"><kbd>Z</kbd> <kbd>X</kbd> <kbd>C</kbd></span></div>
+      <div class="help-row"><span>Sm Straight / Lg Straight / Yahtzee / Chance</span><span class="keys"><kbd>V</kbd> <kbd>B</kbd> <kbd>Y</kbd> <kbd>G</kbd></span></div>
+      <p class="help-note">Each box shows its key in the scorecard; it lights up gold when you can score there right now.</p>
+      <button id="help-close" class="primary">Close <kbd>Esc</kbd></button>
+    </div>
+  </div>
+
+  <div id="overlay" class="hidden">
+    <div class="spinner"></div>
+    <div class="thinking">Optimal is thinking&hellip;</div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
