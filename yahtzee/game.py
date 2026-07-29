@@ -241,15 +241,41 @@ def api_score(state: dict, category) -> dict:
     return state
 
 
+def _advise_both(me: Player, opponent: Player, dice, rerolls_left):
+    """Return (win_decision, ev_decision, used). ``ev_decision`` lets the caller
+    tell when the win-optimal move deviates from the safe expected-score move
+    (i.e. it's a deliberate gamble). ``used`` is 'win' unless win-prob was
+    refused (too many boxes open) and we fell back to expected-score."""
+    solver = get_solver()
+    gs = GameState(open_categories=[S.CATEGORY_NAMES[c] for c in me.open_cats()],
+                   upper_total=me.upper_total, bonus_active=me.bonus_active,
+                   current_score=me.total, dice=dice, rerolls_left=rerolls_left)
+    with _solver_lock:
+        ev = solver.best_play(gs, _opp_info(opponent), objective="ev")
+        try:
+            win = solver.best_play(gs, _opp_info(opponent), objective="win")
+            return win, ev, "win"
+        except ValueError:
+            return ev, ev, "ev"
+
+
 def api_hint(state: dict) -> dict:
-    """Recommended move for the human's current position."""
+    """Recommended move for the human's current position.
+
+    Flags ``gamble`` when the win-optimal move differs from the safe
+    expected-score move -- i.e. it's sacrificing average points for a better
+    chance to win (only happens when you're behind)."""
     if state["phase"] != "rolled" or state["dice"] is None:
         return {"hint": None}
     you, ai = _load(state)
     if state["rolls_left"] >= 1:
-        dec, used = _advise(you, ai, state["dice"], 1)
-        return {"hint": {"type": "keep", "keep": list(dec.best_keep.keep),
-                         "objective": used}}
-    dec, used = _advise(you, ai, state["dice"], 0)
-    return {"hint": {"type": "score", "category": dec.best_score.name,
-                     "points": dec.best_score.points, "objective": used}}
+        win, ev, used = _advise_both(you, ai, state["dice"], 1)
+        keep = list(win.best_keep.keep)
+        gamble = used == "win" and sorted(keep) != sorted(ev.best_keep.keep)
+        return {"hint": {"type": "keep", "keep": keep,
+                         "objective": used, "gamble": gamble}}
+    win, ev, used = _advise_both(you, ai, state["dice"], 0)
+    gamble = used == "win" and win.best_score.category != ev.best_score.category
+    return {"hint": {"type": "score", "category": win.best_score.name,
+                     "points": win.best_score.points,
+                     "objective": used, "gamble": gamble}}

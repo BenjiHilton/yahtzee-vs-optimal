@@ -232,6 +232,9 @@ async function doHint() {
   const r = await api("/api/hint", { state: game });
   if (!r.hint) return;
   $("hint").style.color = "";
+  const gambleNote = r.hint.gamble
+    ? " ⚠️ Gambling — you're behind, so this lowers your average score but gives the best chance to win."
+    : "";
   if (r.hint.type === "keep") {
     // highlight which dice to hold
     held.clear();
@@ -240,10 +243,11 @@ async function doHint() {
       const k = need.indexOf(v);
       if (k !== -1) { held.add(i); need.splice(k, 1); }
     });
-    $("hint").textContent = "Optimal would keep [" + r.hint.keep.join(" ") + "] and reroll the rest.";
+    const kept = r.hint.keep.length ? "[" + r.hint.keep.join(" ") + "]" : "nothing";
+    $("hint").textContent = "Optimal would keep " + kept + " and reroll the rest." + gambleNote;
   } else {
     hintCell = r.hint.category;
-    $("hint").textContent = `Optimal would score in ${r.hint.category} (+${r.hint.points}).`;
+    $("hint").textContent = `Optimal would score in ${r.hint.category} (+${r.hint.points}).` + gambleNote;
   }
   render();
 }
